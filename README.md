@@ -13,8 +13,8 @@ Plain HTML, one shared stylesheet and one vanilla-JavaScript file. No build step
 - `contact.html` — Contact + quote request form
 
 ## Files
-- `styles.css` — all styling. Brand colours are CSS variables at the top (`--navy`, `--blue`, `--red`…).
-- `app.js` — sticky header, mobile menu, sliders, scroll effects, area checker and both forms.
+- `styles.css` — all styling. Brand colours are CSS variables at the top: orange `--red` (#ee6a1e), charcoal `--ink` (#15171b), navy `--navy` (#13223b). Animations are in the MOTION block at the bottom and switch off automatically for visitors who prefer reduced motion.
+- `app.js` — sticky header, mobile menu, sliders, scroll reveals, count-ups, parallax, card tilt, area checker and both forms.
 - `fonts/` — Red Hat Display (headings) and Roboto (body), self-hosted.
 
 ## Forms

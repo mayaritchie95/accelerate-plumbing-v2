@@ -2,162 +2,196 @@
    Vanilla JS, no dependencies. Progressive enhancement only. */
 (function () {
   'use strict';
+  var EMAIL = 'acceleratepandh@gmail.com';
+  var TOWNS = ['prince george', 'mackenzie', 'vanderhoof', 'fort st. james', 'fort st james', 'quesnel'];
 
-  function ready(fn) {
-    if (document.readyState !== 'loading') fn();
-    else document.addEventListener('DOMContentLoaded', fn);
-  }
+  function $(s, c) { return (c || document).querySelector(s); }
+  function $$(s, c) { return Array.prototype.slice.call((c || document).querySelectorAll(s)); }
+  function ready(fn) { if (document.readyState !== 'loading') fn(); else document.addEventListener('DOMContentLoaded', fn); }
 
-  /* ---- hover / focus styles (from data-hover / data-focus attributes) ---- */
-  function applyState(el, attr) {
-    if (el.__base === undefined) el.__base = el.getAttribute('style') || '';
-    el.setAttribute('style', el.__base + ';' + el.getAttribute(attr));
-  }
-  function clearState(el) {
-    if (el.__base !== undefined) el.setAttribute('style', el.__base);
-  }
-  function wireStates() {
-    document.querySelectorAll('[data-hover]').forEach(function (el) {
-      el.addEventListener('mouseenter', function () { applyState(el, 'data-hover'); });
-      el.addEventListener('mouseleave', function () { clearState(el); });
-    });
-    document.querySelectorAll('[data-focus]').forEach(function (el) {
-      el.addEventListener('focus', function () { applyState(el, 'data-focus'); });
-      el.addEventListener('blur', function () { clearState(el); });
-    });
+  /* ---- headers: sticky pill on scroll, back-to-top ---- */
+  function wireHeader() {
+    var pill = $('#pill');
+    var top = $('[data-top]');
+    var isHome = document.body.classList.contains('home');
+    function onScroll() {
+      var y = window.scrollY;
+      if (pill) {
+        if (isHome) pill.classList.toggle('is-stuck', y > 160);
+        else pill.classList.toggle('is-shown', y > 260);
+      }
+      if (top) top.classList.toggle('is-shown', y > 700);
+    }
+    window.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+    if (top) top.addEventListener('click', function () { window.scrollTo({ top: 0, behavior: 'smooth' }); });
   }
 
   /* ---- mobile menu ---- */
   function wireMenu() {
-    var btn = document.getElementById('navToggle');
-    var panel = document.getElementById('navPanel');
-    if (!btn || !panel) return;
-    btn.addEventListener('click', function () {
-      panel.style.display = (panel.style.display === 'block') ? 'none' : 'block';
-    });
+    var m = $('#mnav');
+    if (!m) return;
+    function set(open) {
+      m.classList.toggle('is-open', open);
+      m.setAttribute('aria-hidden', open ? 'false' : 'true');
+      document.body.style.overflow = open ? 'hidden' : '';
+    }
+    $$('[data-open]').forEach(function (b) { b.addEventListener('click', function () { set(true); }); });
+    $$('[data-close]', m).forEach(function (b) { b.addEventListener('click', function () { set(false); }); });
+    m.addEventListener('click', function (e) { if (e.target === m) set(false); });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') set(false); });
   }
 
-  /* ---- count-up stats (Home) ---- */
-  function runCounters() {
-    document.querySelectorAll('[data-count]').forEach(function (el) {
-      var target = parseFloat(el.getAttribute('data-count'));
-      var dec = el.getAttribute('data-dec') === '1';
-      var suffix = el.getAttribute('data-suffix') || '';
-      var dur = 1500, start = performance.now();
-      function step(now) {
-        var p = Math.min(1, (now - start) / dur);
-        var eased = 1 - Math.pow(1 - p, 3);
-        var v = target * eased;
-        el.textContent = (dec ? v.toFixed(1) : Math.round(v).toLocaleString()) + suffix;
-        if (p < 1) requestAnimationFrame(step);
+  /* ---- horizontal sliders ---- */
+  function wireTracks() {
+    $$('[data-track]').forEach(function (track) {
+      var id = track.getAttribute('data-track');
+      function step(dir) {
+        var first = track.firstElementChild;
+        var w = first ? first.getBoundingClientRect().width + 16 : track.clientWidth * 0.8;
+        var max = track.scrollWidth - track.clientWidth - 2;
+        if (dir > 0 && track.scrollLeft >= max) track.scrollTo({ left: 0, behavior: 'smooth' });
+        else if (dir < 0 && track.scrollLeft <= 2) track.scrollTo({ left: max, behavior: 'smooth' });
+        else track.scrollBy({ left: dir * w, behavior: 'smooth' });
       }
-      requestAnimationFrame(step);
+      $$('[data-next="' + id + '"]').forEach(function (b) { b.addEventListener('click', function () { step(1); }); });
+      $$('[data-prev="' + id + '"]').forEach(function (b) { b.addEventListener('click', function () { step(-1); }); });
     });
   }
-  function wireCounters() {
-    var band = document.querySelector('[data-counters]');
-    if (!band || !('IntersectionObserver' in window)) return;
-    var io = new IntersectionObserver(function (entries) {
-      entries.forEach(function (e) {
-        if (e.isIntersecting) { runCounters(); io.disconnect(); }
-      });
-    }, { threshold: 0.35 });
-    io.observe(band);
+
+  /* ---- single-quote slider ---- */
+  function wireQuotes() {
+    $$('[data-qslider]').forEach(function (box) {
+      var slides = $$('.qslide', box), i = 0;
+      function go(n) {
+        slides[i].classList.remove('is-active');
+        i = (n + slides.length) % slides.length;
+        slides[i].classList.add('is-active');
+      }
+      var next = $('[data-qnext]', box), prev = $('[data-qprev]', box);
+      if (next) next.addEventListener('click', function () { go(i + 1); });
+      if (prev) prev.addEventListener('click', function () { go(i - 1); });
+    });
   }
 
-  /* ---- helpers ---- */
-  var EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  function showErr(id, msg) {
-    var el = document.getElementById(id);
-    if (!el) return;
-    el.textContent = msg;
-    el.style.display = msg ? 'block' : 'none';
+  /* ---- heading that fills in word by word as you scroll ---- */
+  function wireReveal() {
+    $$('.reveal-text').forEach(function (el) {
+      var words = el.textContent.trim().split(/\s+/);
+      el.innerHTML = words.map(function (w) { return '<span class="w">' + w + '</span>'; }).join(' ');
+      var spans = $$('.w', el);
+      function update() {
+        var r = el.getBoundingClientRect();
+        var vh = window.innerHeight;
+        var p = Math.min(1, Math.max(0, (vh * 0.95 - r.top) / (vh * 0.55)));
+        var n = Math.round(p * spans.length);
+        spans.forEach(function (s, k) { s.classList.toggle('on', k < n); });
+      }
+      window.addEventListener('scroll', update, { passive: true });
+      window.addEventListener('resize', update);
+      update();
+    });
   }
-  function mailto(subjectName, body) {
-    return 'mailto:acceleratepandh@gmail.com?subject=' +
-      encodeURIComponent('Quote request — ' + (subjectName || 'New enquiry')) +
+
+  /* ---- stacked service cards: shrink slightly as the next one covers them ---- */
+  function wireStack() {
+    var cards = $$('.scard');
+    if (!cards.length || !window.matchMedia('(min-width: 981px)').matches) return;
+    function update() {
+      cards.forEach(function (c, k) {
+        var next = cards[k + 1];
+        if (!next) { c.style.transform = ''; return; }
+        var gap = next.getBoundingClientRect().top - c.getBoundingClientRect().top;
+        var p = Math.min(1, Math.max(0, 1 - gap / c.offsetHeight));
+        c.style.transform = 'scale(' + (1 - p * 0.05) + ')';
+      });
+    }
+    window.addEventListener('scroll', update, { passive: true });
+    update();
+  }
+
+  /* ---- "do we serve your area?" checker ---- */
+  function wireAreaCheck() {
+    $$('[data-area-check]').forEach(function (form) {
+      var input = $('input', form), out = $('.check-msg', form.parentNode);
+      form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        var v = input.value.trim().toLowerCase();
+        if (!v) { out.textContent = 'Enter your town or postal code.'; return; }
+        var hit = TOWNS.some(function (t) { return v.indexOf(t) > -1 || t.indexOf(v) > -1; }) || /^v2[klmn]/i.test(v.replace(/\s/g, ''));
+        out.innerHTML = hit
+          ? 'Good news &mdash; we serve your area. <a href="contact.html" style="color:#d12a22;font-weight:600">Request a quote &rarr;</a>'
+          : 'Not sure &mdash; give us a call at <a href="tel:+12509615715" style="color:#d12a22;font-weight:600">250-961-5715</a>, chances are we cover it.';
+      });
+    });
+  }
+
+  /* ---- forms (validate, then open a pre-filled email) ---- */
+  var EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  function setErr(input, bad) {
+    var f = input.closest('.field');
+    if (f) f.classList.toggle('has-err', !!bad);
+    return !bad;
+  }
+  function mailto(name, body) {
+    return 'mailto:' + EMAIL + '?subject=' + encodeURIComponent('Quote request — ' + (name || 'New enquiry')) +
       '&body=' + encodeURIComponent(body);
   }
-
-  /* ---- Home lead form ---- */
-  function wireLeadForm() {
-    var btn = document.getElementById('lead-submit');
-    if (!btn) return;
-    var name = document.getElementById('lead-name');
-    var phone = document.getElementById('lead-phone');
-    var email = document.getElementById('lead-email');
-    var city = document.getElementById('lead-city');
-    var service = document.getElementById('lead-service');
-    [name, phone, email].forEach(function (inp) {
-      if (inp) inp.addEventListener('input', function () {
-        showErr('lead-err-' + inp.id.replace('lead-', ''), '');
-      });
-    });
-    btn.addEventListener('click', function () {
+  function wireForm(formId, doneId, rules, build) {
+    var form = document.getElementById(formId);
+    if (!form) return;
+    var done = document.getElementById(doneId);
+    $$('input,textarea', form).forEach(function (i) { i.addEventListener('input', function () { setErr(i, false); }); });
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
       var ok = true;
-      showErr('lead-err-name', ''); showErr('lead-err-phone', ''); showErr('lead-err-email', '');
-      if (!name.value.trim()) { showErr('lead-err-name', 'Please enter your name.'); ok = false; }
-      if (!phone.value.trim()) { showErr('lead-err-phone', 'Please enter a phone number.'); ok = false; }
-      if (email.value.trim() && !EMAIL_RE.test(email.value.trim())) { showErr('lead-err-email', 'That email doesn’t look right.'); ok = false; }
-      if (!ok) return;
-      var body = 'Name: ' + name.value + '\n' +
-        'Phone: ' + phone.value + '\n' +
-        'Email: ' + email.value + '\n' +
-        'City/Town: ' + city.value + '\n' +
-        'Service: ' + (service.value || '(not specified)');
-      document.getElementById('lead-mailto').setAttribute('href', mailto(name.value, body));
-      document.getElementById('lead-name-out').textContent = name.value;
-      document.getElementById('lead-form').style.display = 'none';
-      document.getElementById('lead-success').style.display = 'block';
-    });
-  }
-
-  /* ---- Contact form ---- */
-  function wireContactForm() {
-    var btn = document.getElementById('c-submit');
-    if (!btn) return;
-    var name = document.getElementById('c-name');
-    var email = document.getElementById('c-email');
-    var phone = document.getElementById('c-phone');
-    var address = document.getElementById('c-address');
-    var scope = document.getElementById('c-scope');
-    [name, email, phone, scope].forEach(function (inp) {
-      if (inp) inp.addEventListener('input', function () {
-        showErr('c-err-' + inp.id.replace('c-', ''), '');
+      rules.forEach(function (r) {
+        var el = form.elements[r[0]];
+        var v = el.value.trim();
+        var bad = (r[1] && !v) || (r[2] && v && !EMAIL_RE.test(v));
+        if (!setErr(el, bad)) ok = false;
       });
+      if (!ok) { var f = $('.has-err input, .has-err textarea', form); if (f) f.focus(); return; }
+      var data = build(form);
+      var href = mailto(data.name, data.body);
+      $$('[data-mailto]', done).forEach(function (a) { a.setAttribute('href', href); });
+      $$('[data-out-name]', done).forEach(function (s) { s.textContent = data.name.split(' ')[0]; });
+      form.style.display = 'none';
+      done.style.display = 'block';
+      window.location.href = href;
     });
-    btn.addEventListener('click', function () {
-      var ok = true;
-      ['name', 'email', 'phone', 'scope'].forEach(function (f) { showErr('c-err-' + f, ''); });
-      if (!name.value.trim()) { showErr('c-err-name', 'Please enter your name.'); ok = false; }
-      if (!email.value.trim()) { showErr('c-err-email', 'Please enter your email.'); ok = false; }
-      else if (!EMAIL_RE.test(email.value.trim())) { showErr('c-err-email', 'That email doesn’t look right.'); ok = false; }
-      if (!phone.value.trim()) { showErr('c-err-phone', 'Please enter a phone number.'); ok = false; }
-      if (!scope.value.trim()) { showErr('c-err-scope', 'Let us know what you need done.'); ok = false; }
-      if (!ok) return;
-      var body = 'Name: ' + name.value + '\n' +
-        'Phone: ' + phone.value + '\n' +
-        'Email: ' + email.value + '\n' +
-        'Address: ' + address.value + '\n\n' +
-        'Scope of work:\n' + scope.value;
-      document.getElementById('c-mailto').setAttribute('href', mailto(name.value, body));
-      document.getElementById('c-name-out').textContent = name.value;
-      document.getElementById('contact-form').style.display = 'none';
-      document.getElementById('contact-success').style.display = 'block';
-    });
-    var reset = document.getElementById('c-reset');
-    if (reset) reset.addEventListener('click', function () {
-      [name, email, phone, address, scope].forEach(function (i) { if (i) i.value = ''; });
-      document.getElementById('contact-success').style.display = 'none';
-      document.getElementById('contact-form').style.display = 'block';
+    var again = $('[data-again]', done);
+    if (again) again.addEventListener('click', function () {
+      form.reset(); done.style.display = 'none'; form.style.display = '';
     });
   }
 
   ready(function () {
-    wireStates();
+    wireHeader();
     wireMenu();
-    wireCounters();
-    wireLeadForm();
-    wireContactForm();
+    wireTracks();
+    wireQuotes();
+    wireReveal();
+    wireStack();
+    wireAreaCheck();
+
+    wireForm('lead-form', 'lead-done', [['name', true], ['phone', true], ['email', false, true]], function (f) {
+      var e = f.elements;
+      return { name: e.name.value.trim(), body:
+        'Name: ' + e.name.value + '\nPhone: ' + e.phone.value + '\nEmail: ' + e.email.value +
+        '\nService: ' + e.service.value + '\n\n' + e.message.value };
+    });
+
+    wireForm('contact-form', 'contact-done',
+      [['first', true], ['last', false], ['email', true, true], ['phone', true], ['address', true], ['message', true]],
+      function (f) {
+        var e = f.elements;
+        var svcs = $$('input[name="services"]:checked', f).map(function (c) { return c.value; }).join(', ');
+        var name = (e.first.value + ' ' + e.last.value).trim();
+        return { name: name, body:
+          'Name: ' + name + '\nPhone: ' + e.phone.value + '\nEmail: ' + e.email.value +
+          '\nAddress: ' + [e.address.value, e.city.value, e.postal.value].map(function (x) { return x.trim(); }).filter(Boolean).join(', ') +
+          '\nServices: ' + (svcs || '(not specified)') + '\n\nScope of work:\n' + e.message.value };
+      });
   });
 })();

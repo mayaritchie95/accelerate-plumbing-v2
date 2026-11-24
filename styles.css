@@ -964,3 +964,8 @@ body.home .pill--overlay.is-stuck{position:fixed;animation:slideDown .4s ease}
   .step .icon-circle,.step:last-child .icon-circle{position:static;margin-top:28px}
   .step h3{margin-top:20px}
 }
+
+/* shield badge removed: band content starts at the page gutter */
+.band__strip::before,.band__badge{display:none}
+.band__strip{padding-left:var(--gut)}
+.reach__card .img img{object-position:50% 50%}

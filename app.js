@@ -149,7 +149,7 @@
   /* elements to fade/slide in, grouped so siblings stagger */
   var REVEAL = [
     ['.sec-head > *, .faq__head > *, .offers__head > *, .process__top > div > *, .clear__head > *', ''],
-    ['.svc-card, .offer, .promise, .step, .pcard, .gitem, .qa, .tcard, .slide, .team__tiles > div, .sgrid > div, .feat-row .feat, .cover__grid > *', ''],
+    ['.svc-card, .promise, .step, .pcard, .gitem, .qa, .tcard, .team__tiles > div, .sgrid > div, .feat-row .feat, .cover__grid > *', ''],
     ['.about__body .head, .about__body .txt, .tsplit > div:last-child > *, .trust__body > *, .team__intro > *, .about-stats .txt, .quote-grid > div:first-child > *', ''],
     ['.panel__card, .ready, .qcard, .reach__card, .cform, .cside, .std-card, .chips span, .footer__grid > div, .footer__top > *', 'rv--zoom'],
     ['.adv__strip', ''],

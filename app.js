@@ -166,14 +166,14 @@
         el.classList.add('in');
         io.unobserve(el);
         // hand transform back to hover/tilt effects once the entrance is done
-        setTimeout(function () { el.classList.remove('rv', 'in', 'rv-img', 'rv--zoom', 'rv--left', 'rv--right'); el.style.removeProperty('--d'); }, 1400 + (parseFloat(el.style.getPropertyValue('--d')) || 0) * 1000);
+        setTimeout(function () { el.classList.remove('rv', 'in', 'rv-img', 'rv--zoom', 'rv--left', 'rv--right'); el.style.removeProperty('--d'); }, 1200 + (parseFloat(el.style.getPropertyValue('--d')) || 0) * 1000);
       });
-    }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+    }, { threshold: 0.05, rootMargin: '0px 0px -10px 0px' });
 
     function tag(el, extra) {
       if (el.classList.contains('rv') || el.closest('.hero')) return;
       var sibs = Array.prototype.filter.call(el.parentNode.children, function (c) { return c.matches && c.classList.contains('rv'); });
-      el.style.setProperty('--d', Math.min(sibs.length, 6) * 0.09 + 's');
+      el.style.setProperty('--d', Math.min(sibs.length, 5) * 0.05 + 's');
       el.classList.add('rv');
       if (extra) el.classList.add(extra);
       io.observe(el);
@@ -193,7 +193,7 @@
         if (REDUCED) return;
         var target = parseFloat(el.getAttribute('data-count'));
         var dec = el.getAttribute('data-dec') === '1';
-        var t0 = performance.now(), dur = 1600;
+        var t0 = performance.now(), dur = 900;
         (function step(now) {
           var p = Math.min(1, (now - t0) / dur), v = target * (1 - Math.pow(1 - p, 3));
           el.textContent = dec ? v.toFixed(1) : Math.round(v);
@@ -239,7 +239,7 @@
         el.style.transform = 'perspective(900px) rotateX(' + (-y * 7) + 'deg) rotateY(' + (x * 7) + 'deg) translateY(-6px)';
       });
       el.addEventListener('mouseleave', function () {
-        el.style.transition = 'transform .6s cubic-bezier(.2,.7,.2,1), box-shadow .45s';
+        el.style.transition = 'transform .35s cubic-bezier(.2,.7,.2,1), box-shadow .3s';
         el.style.transform = '';
       });
     });

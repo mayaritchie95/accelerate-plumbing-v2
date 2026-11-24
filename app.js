@@ -229,6 +229,7 @@
 
   /* subtle 3D tilt on cards (mouse only) */
   function wireTilt() {
+    return; /* card tilt removed */
     if (REDUCED || !window.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
     $$('.svc-card, .offer, .pcard, .promise, .std-box, .ready__card').forEach(function (el) {
       el.addEventListener('mousemove', function (e) {

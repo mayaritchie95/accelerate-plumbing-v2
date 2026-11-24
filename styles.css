@@ -1020,3 +1020,15 @@ body.home .pill--overlay.is-stuck{position:fixed;animation:slideDown .4s ease}
 .footer__credit img{height:13px;width:auto;opacity:.85;transition:opacity .2s}
 .footer__credit:hover{color:#fff}
 .footer__credit:hover img{opacity:1}
+
+/* ===== calmer motion ===== */
+/* banners: logo strip and flowing gradients move slowly */
+.brands__track{animation-duration:55s}
+.band__strip,.adv__strip,.btn--red{animation-duration:30s}
+.progress{animation-duration:8s}
+.band .feat:nth-child(n) .icon-circle{animation-duration:3.2s}
+
+/* cards: no floating, no looping gradients, no tilt, no icon wiggle */
+.stat-box,.stat-box--red,.ready__card::after,.std-box{animation:none !important}
+.svc-card:hover .icon-circle,.pcard:hover .icon-circle,.promise:hover .icon-circle,.step:hover .icon-circle{transform:none}
+.tilt{transform:none}
